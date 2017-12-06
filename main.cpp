@@ -39,25 +39,25 @@ int handleUpdateRow(const std::string &binFilePath, int row, float mileage);
 
 int handleDeleteRow(const std::string &binFilePath, int row);
 
-int readTxtFile(std::vector<Car *> &out, std::istream &is);
+int readTxtFile(Car **cars, int &count, std::istream &is);
 
 Car *readCarTxt(int iLine, const std::string &line);
 
-int readBinFile(std::vector<Car *> &out, std::istream &is);
+int readBinFile(Car **cars, int &count, std::istream &is);
 
 Car *readCarBin(std::istream &is);
 
-int writeBinFile(std::vector<Car *> &cars, std::ostream &os);
+int writeBinFile(Car *cars, int &count, std::ostream &os);
 
 int writeCarBin(std::ostream &os, const Car &car);
 
-int writeTxtFile(std::vector<Car *> &cars, std::ostream &os);
+int writeTxtFile(Car *cars, int &count, std::ostream &os);
 
 int writeCarTxt(std::ostream &os, const Car &car);
 
 void printCar(const Car &car);
 
-void printCars(const std::vector<Car *> cars);
+void printCars(Car* cars, int count);
 
 int main(int argc, char **argv) {
     /**
@@ -307,7 +307,9 @@ void printUsage() {
 }
 
 int handleTxt2Bin(const std::string &srcPath, const std::string &dstPath) {
-    std::vector<Car *> cars;
+    Car *cars;
+    int count;
+    //std::vector<Car *> cars;
 
     std::ifstream ifs(srcPath);
     if (ifs.fail() || ifs.bad()) {
@@ -315,39 +317,34 @@ int handleTxt2Bin(const std::string &srcPath, const std::string &dstPath) {
         return 1;
     }
 
-    if (readTxtFile(cars, ifs)) {
+    if (readTxtFile(&cars, count, ifs)) {
         std::cerr << "Can not read file " << srcPath << std::endl;
         return 1;
     }
 
-    printCars(cars);
+    printCars(cars, count);
 
     std::ofstream ofs(dstPath, std::ios_base::binary | std::ios_base::out);
     if (ofs.fail() || ofs.bad()) {
         std::cerr << "Can not open file " << dstPath << std::endl;
-        for (auto &car : cars) {
-            delete car;
-        }
+        delete[] cars;
         return 1;
     }
 
-    if (writeBinFile(cars, ofs)) {
+    if (writeBinFile(cars, count, ofs)) {
         std::cerr << "Can not write car" << std::endl;
-        for (auto &car : cars) {
-            delete car;
-        }
+        delete[] cars;
         return 1;
     }
 
-    for (auto &car : cars) {
-        delete car;
-    }
+    delete[] cars;
 
     return 0;
 }
 
 int handleBin2Txt(const std::string &srcPath, const std::string &dstPath) {
-    std::vector<Car *> cars;
+    Car *cars;
+    int count;
 
     std::ifstream ifs(srcPath, std::ios_base::binary | std::ios_base::in);
     if (ifs.fail() || ifs.bad()) {
@@ -355,38 +352,33 @@ int handleBin2Txt(const std::string &srcPath, const std::string &dstPath) {
         return 1;
     }
 
-    if (readBinFile(cars, ifs)) {
+    if (readBinFile(&cars, count, ifs)) {
         std::cerr << "Can not read file " << srcPath << std::endl;
         return 1;
     }
 
-    printCars(cars);
+    printCars(cars, count);
 
     std::ofstream ofs(dstPath);
     if (ofs.fail() || ofs.bad()) {
         std::cerr << "Can not open file " << dstPath << std::endl;
-        for (auto &car : cars) {
-            delete car;
-        }
+        delete[] cars;
         return 1;
     }
 
-    if (writeTxtFile(cars, ofs)) {
+    if (writeTxtFile(cars, count, ofs)) {
         std::cerr << "Can not write car" << std::endl;
-        for (auto &car : cars) {
-            delete car;
-        }
+        delete[] cars;
         return 1;
     }
 
-    for (auto &car : cars) {
-        delete car;
-    }
+    delete[] cars;
     return 0;
 }
 
 int handlePrintTxt(const std::string &txtFilePath) {
-    std::vector<Car *> cars;
+    Car *cars;
+    int count;
 
     std::ifstream ifs(txtFilePath);
     if (ifs.fail() || ifs.bad()) {
@@ -394,22 +386,21 @@ int handlePrintTxt(const std::string &txtFilePath) {
         return 1;
     }
 
-    if (readTxtFile(cars, ifs)) {
+    if (readTxtFile(&cars, count, ifs)) {
         std::cerr << "Can not read file " << txtFilePath << std::endl;
         return 1;
     }
 
-    printCars(cars);
+    printCars(cars, count);
 
-    for (auto &car : cars) {
-        delete car;
-    }
+    delete[]cars;
 
     return 0;
 }
 
 int handlePrintBin(const std::string &binFilePath) {
-    std::vector<Car *> cars;
+    Car *cars;
+    int count;
 
     std::ifstream ifs(binFilePath, std::ios_base::binary | std::ios_base::out);
     if (ifs.fail() || ifs.bad()) {
@@ -417,22 +408,21 @@ int handlePrintBin(const std::string &binFilePath) {
         return 1;
     }
 
-    if (readBinFile(cars, ifs)) {
+    if (readBinFile(&cars, count, ifs)) {
         std::cerr << "Can not read file " << binFilePath << std::endl;
         return 1;
     }
 
-    printCars(cars);
+    printCars(cars, count);
 
-    for (auto &car : cars) {
-        delete car;
-    }
+    delete[] cars;
 
     return 0;
 }
 
 int handleMoreThan100000(const std::string &binFilePath) {
-    std::vector<Car *> cars;
+    Car *cars;
+    int count;
 
     std::ifstream ifs(binFilePath, std::ios_base::binary | std::ios_base::out);
     if (ifs.fail() || ifs.bad()) {
@@ -440,28 +430,29 @@ int handleMoreThan100000(const std::string &binFilePath) {
         return 1;
     }
 
-    if (readBinFile(cars, ifs)) {
+    if (readBinFile(&cars, count, ifs)) {
         std::cerr << "Can not read file " << binFilePath << std::endl;
         return 1;
     }
 
-    std::vector<Car *> filtered;
-    for (auto &i : cars) {
-        if (i->mileage > 100000) {
-            filtered.push_back(i);
+    Car *filtered = new Car[count];
+    int currI = 0;
+    for (int i = 0; i < count; ++i) {
+        if (cars[i].mileage > 100000) {
+            filtered[currI++] = cars[i];
         }
     }
-    printCars(filtered);
+    printCars(filtered, currI);
 
-    for (auto &car : cars) {
-        delete car;
-    }
+    delete[]filtered;
+    delete[]cars;
 
     return 0;
 }
 
 int handleNewest5(const std::string &binFilePath) {
-    std::vector<Car *> cars;
+    Car *cars;
+    int count;
 
     std::ifstream ifs(binFilePath, std::ios_base::binary | std::ios_base::out);
     if (ifs.fail() || ifs.bad()) {
@@ -469,30 +460,25 @@ int handleNewest5(const std::string &binFilePath) {
         return 1;
     }
 
-    if (readBinFile(cars, ifs)) {
+    if (readBinFile(&cars, count, ifs)) {
         std::cerr << "Can not read file " << binFilePath << std::endl;
         return 1;
     }
 
-    std::sort(cars.begin(), cars.end(), [](Car *a, Car *b) {
-        return a->year > b->year;
+    std::sort(cars, cars + count, [](Car &a, Car &b) {
+        return a.year > b.year;
     });
-    if (cars.size() > 5) {
-        std::for_each(cars.begin() + 5, cars.end(), [](Car *i) { delete i; });
-        cars.erase(cars.begin() + 5, cars.end());
-    }
-    printCars(cars);
+    printCars(cars, count > 5 ? 5 : count);
 
-    for (auto &car : cars) {
-        delete car;
-    }
+    delete[] cars;
 
     return 0;
 }
 
 int handleCreateRow(const std::string &binFilePath, const std::string &id, const std::string &brand, float mileage,
                     int year) {
-    std::vector<Car *> cars;
+    Car *cars;
+    int count;
 
     std::ifstream ifs(binFilePath, std::ios_base::binary | std::ios_base::out);
     if (ifs.fail() || ifs.bad()) {
@@ -500,7 +486,7 @@ int handleCreateRow(const std::string &binFilePath, const std::string &id, const
         return 1;
     }
 
-    if (readBinFile(cars, ifs)) {
+    if (readBinFile(&cars, count, ifs)) {
         std::cerr << "Can not read file " << binFilePath << std::endl;
         return 1;
     }
@@ -511,35 +497,39 @@ int handleCreateRow(const std::string &binFilePath, const std::string &id, const
     car->brand = brand;
     car->mileage = mileage;
     car->year = year;
-    cars.push_back(car);
 
-    printCars(cars);
+    Car *newCars = new Car[count + 1];
+    for (int i = 0; i < count; ++i) {
+        newCars[i] = cars[i];
+    }
+    newCars[count] = *car;
+    delete car;
+    delete[]cars;
+    cars = newCars;
+    count++;
+
+    printCars(cars, count);
 
     std::ofstream ofs(binFilePath, std::ios_base::binary | std::ios_base::out);
     if (ofs.fail() || ofs.bad()) {
         std::cerr << "Can not open file " << binFilePath << std::endl;
-        for (auto &car : cars) {
-            delete car;
-        }
+        delete[]cars;
         return 1;
     }
 
-    if (writeBinFile(cars, ofs)) {
+    if (writeBinFile(cars, count, ofs)) {
         std::cerr << "Can not write car" << std::endl;
-        for (auto &car : cars) {
-            delete car;
-        }
+        delete[]cars;
         return 1;
     }
-    for (auto &car : cars) {
-        delete car;
-    }
+    delete[]cars;
 
     return 0;
 }
 
 int handleDeleteRow(const std::string &binFilePath, int row) {
-    std::vector<Car *> cars;
+    Car *cars;
+    int count;
 
     std::ifstream ifs(binFilePath, std::ios_base::binary | std::ios_base::out);
     if (ifs.fail() || ifs.bad()) {
@@ -547,50 +537,45 @@ int handleDeleteRow(const std::string &binFilePath, int row) {
         return 1;
     }
 
-    if (readBinFile(cars, ifs)) {
+    if (readBinFile(&cars, count, ifs)) {
         std::cerr << "Can not read file " << binFilePath << std::endl;
         return 1;
     }
     ifs.close();
 
-    if (row >= cars.size()) {
+    if (row >= count) {
         std::cerr << "Index out of bounds : " << row << std::endl;
-        for (auto &car : cars) {
-            delete car;
-        }
+        delete[]cars;
         return 1;
     }
 
-    delete cars[row];
-    cars.erase(cars.begin() + row, cars.begin() + row + 1);
+    for (int i = row; i < count - 1; ++i) {
+        cars[i] = cars[i + 1];
+    }
+    count--;
 
-    printCars(cars);
+    printCars(cars, count);
 
     std::ofstream ofs(binFilePath, std::ios_base::binary | std::ios_base::out);
     if (ofs.fail() || ofs.bad()) {
         std::cerr << "Can not open file " << binFilePath << std::endl;
-        for (auto &car : cars) {
-            delete car;
-        }
+        delete[]cars;
         return 1;
     }
 
-    if (writeBinFile(cars, ofs)) {
+    if (writeBinFile(cars, count, ofs)) {
         std::cerr << "Can not write car" << std::endl;
-        for (auto &car : cars) {
-            delete car;
-        }
+        delete[]cars;
         return 1;
     }
-    for (auto &car : cars) {
-        delete car;
-    }
+    delete[] cars;
 
     return 0;
 }
 
 int handleUpdateRow(const std::string &binFilePath, int row, const std::string &brand, float mileage) {
-    std::vector<Car *> cars;
+    Car* cars;
+    int count;
 
     std::ifstream ifs(binFilePath, std::ios_base::binary | std::ios_base::out);
     if (ifs.fail() || ifs.bad()) {
@@ -598,51 +583,44 @@ int handleUpdateRow(const std::string &binFilePath, int row, const std::string &
         return 1;
     }
 
-    if (readBinFile(cars, ifs)) {
+    if (readBinFile(&cars, count, ifs)) {
         std::cerr << "Can not read file " << binFilePath << std::endl;
         return 1;
     }
     ifs.close();
 
-    if (row >= cars.size()) {
+    if (row >= count) {
         std::cerr << "Index out of bounds : " << row << std::endl;
-        for (auto &car : cars) {
-            delete car;
-        }
+        delete[]cars;
         return 1;
     }
 
-    Car *car = cars[row];
+    Car *car = cars + row;
     car->brand = brand;
     car->mileage = mileage;
 
-    printCars(cars);
+    printCars(cars, count);
 
     std::ofstream ofs(binFilePath, std::ios_base::binary | std::ios_base::out);
     if (ofs.fail() || ofs.bad()) {
         std::cerr << "Can not open file " << binFilePath << std::endl;
-        for (auto &car : cars) {
-            delete car;
-        }
+        delete[] cars;
         return 1;
     }
 
-    if (writeBinFile(cars, ofs)) {
+    if (writeBinFile(cars, count, ofs)) {
         std::cerr << "Can not write car" << std::endl;
-        for (auto &car : cars) {
-            delete car;
-        }
+        delete[] cars;
         return 1;
     }
-    for (auto &car : cars) {
-        delete car;
-    }
+    delete[] cars;
 
     return 0;
 }
 
 int handleUpdateRow(const std::string &binFilePath, int row, const std::string &brand) {
-    std::vector<Car *> cars;
+    Car* cars;
+    int count;
 
     std::ifstream ifs(binFilePath, std::ios_base::binary | std::ios_base::out);
     if (ifs.fail() || ifs.bad()) {
@@ -650,50 +628,43 @@ int handleUpdateRow(const std::string &binFilePath, int row, const std::string &
         return 1;
     }
 
-    if (readBinFile(cars, ifs)) {
+    if (readBinFile(&cars, count, ifs)) {
         std::cerr << "Can not read file " << binFilePath << std::endl;
         return 1;
     }
     ifs.close();
 
-    if (row >= cars.size()) {
+    if (row >= count) {
         std::cerr << "Index out of bounds : " << row << std::endl;
-        for (auto &car : cars) {
-            delete car;
-        }
+        delete[]cars;
         return 1;
     }
 
-    Car *car = cars[row];
+    Car *car = cars + row;
     car->brand = brand;
 
-    printCars(cars);
+    printCars(cars, count);
 
     std::ofstream ofs(binFilePath, std::ios_base::binary | std::ios_base::out);
     if (ofs.fail() || ofs.bad()) {
         std::cerr << "Can not open file " << binFilePath << std::endl;
-        for (auto &car : cars) {
-            delete car;
-        }
+        delete[]cars;
         return 1;
     }
 
-    if (writeBinFile(cars, ofs)) {
+    if (writeBinFile(cars, count, ofs)) {
         std::cerr << "Can not write car" << std::endl;
-        for (auto &car : cars) {
-            delete car;
-        }
+        delete[]cars;
         return 1;
     }
-    for (auto &car : cars) {
-        delete car;
-    }
+    delete[]cars;
 
     return 0;
 }
 
 int handleUpdateRow(const std::string &binFilePath, int row, float mileage) {
-    std::vector<Car *> cars;
+    Car* cars;
+    int count;
 
     std::ifstream ifs(binFilePath, std::ios_base::binary | std::ios_base::out);
     if (ifs.fail() || ifs.bad()) {
@@ -701,44 +672,36 @@ int handleUpdateRow(const std::string &binFilePath, int row, float mileage) {
         return 1;
     }
 
-    if (readBinFile(cars, ifs)) {
+    if (readBinFile(&cars, count, ifs)) {
         std::cerr << "Can not read file " << binFilePath << std::endl;
         return 1;
     }
     ifs.close();
 
-    if (row >= cars.size()) {
+    if (row >= count) {
         std::cerr << "Index out of bounds : " << row << std::endl;
-        for (auto &car : cars) {
-            delete car;
-        }
+        delete[]cars;
         return 1;
     }
 
-    Car *car = cars[row];
+    Car *car = cars + row;
     car->mileage = mileage;
 
-    printCars(cars);
+    printCars(cars, count);
 
     std::ofstream ofs(binFilePath, std::ios_base::binary | std::ios_base::out);
     if (ofs.fail() || ofs.bad()) {
         std::cerr << "Can not open file " << binFilePath << std::endl;
-        for (auto &car : cars) {
-            delete car;
-        }
+        delete[]cars;
         return 1;
     }
 
-    if (writeBinFile(cars, ofs)) {
+    if (writeBinFile(cars, count, ofs)) {
         std::cerr << "Can not write car" << std::endl;
-        for (auto &car : cars) {
-            delete car;
-        }
+        delete[]cars;
         return 1;
     }
-    for (auto &car : cars) {
-        delete car;
-    }
+    delete[]cars;
 
     return 0;
 }
@@ -750,39 +713,41 @@ void printCar(const Car &car) {
               << std::setw(7) << car.year << std::endl;
 }
 
-void printCars(const std::vector<Car *> cars) {
+void printCars(Car *cars, int count) {
     std::cout << "   Реестр автомобилей" << std::endl;
     std::cout << "  --------------------------------------------------  " << std::endl;
     std::cout << std::setw(8) << std::right << "Id"
               << std::setw(16) << std::right << "Brand"
               << std::setw(16) << std::right << "Mileage"
               << std::setw(8) << std::right << "Year" << std::endl;
-    for (auto &car : cars) {
-        printCar(*car);
+    for (int i = 0; i < count; ++i) {
+        printCar(cars[i]);
     }
 }
 
-int readTxtFile(std::vector<Car *> &out, std::istream &is) {
+int readTxtFile(Car **out, int &count, std::istream &is) {
     std::string line;
     bool error = false;
     int iLine = 0;
+
+    *out = new Car[1000];
+    int currI = 0;
     while (std::getline(is, line)) {
         Car *car = readCarTxt(iLine++, line);
         if (car != nullptr) {
-            out.push_back(car);
+            (*out)[currI++] = *car;
+            delete car;
         } else {
             error = true;
         }
     }
 
     if (error) {
-        for (auto &car : out) {
-            delete car;
-        }
-        out.clear();
+        delete[](*out);
         return 1;
     }
 
+    count = currI;
     return 0;
 }
 
@@ -821,21 +786,20 @@ Car *readCarTxt(int iLine, const std::string &line) {
     return car;
 }
 
-int readBinFile(std::vector<Car *> &out, std::istream &is) {
+int readBinFile(Car **cars, int &count, std::istream &is) {
+    *cars = new Car[1000];
+    count = 0;
     while (!is.eof()) {
         Car *car = readCarBin(is);
         if (car == nullptr) {
             if (is.eof()) {
                 break;
             } else {
-                for (auto &car : out) {
-                    delete car;
-                }
+                delete[]cars;
             }
-            out.clear();
             return 1;
         } else {
-            out.push_back(car);
+            (*cars)[count++] = *car;
         }
     }
     return 0;
@@ -891,9 +855,9 @@ Car *readCarBin(std::istream &is) {
     return car;
 }
 
-int writeBinFile(std::vector<Car *> &cars, std::ostream &os) {
-    for (auto &car : cars) {
-        if (writeCarBin(os, *car)) {
+int writeBinFile(Car *cars, int &count, std::ostream &os) {
+    for (int i = 0; i < count; ++i) {
+        if (writeCarBin(os, cars[i])) {
             return 1;
         }
     }
@@ -915,9 +879,9 @@ int writeCarBin(std::ostream &os, const Car &car) {
     return os.fail() || os.bad();
 }
 
-int writeTxtFile(std::vector<Car *> &cars, std::ostream &os) {
-    for (auto &car : cars) {
-        if (writeCarTxt(os, *car)) {
+int writeTxtFile(Car *cars, int &count, std::ostream &os) {
+    for (int i = 0; i < count; ++i) {
+        if (writeCarTxt(os, cars[i])) {
             return 1;
         }
     }
