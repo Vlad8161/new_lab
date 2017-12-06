@@ -844,9 +844,13 @@ int readBinFile(std::vector<Car *> &out, std::istream &is) {
 Car *readCarBin(std::istream &is) {
     unsigned long idSize;
     is.read((char *) &idSize, sizeof(idSize));
+    if (is.eof() || is.fail() || is.bad()) {
+        return nullptr;
+    }
+
     char *id = new char[idSize + 1];
     is.read(id, idSize);
-    if (is.fail() || is.bad()) {
+    if (is.fail() || is.bad() || is.eof()) {
         delete[]id;
         return nullptr;
     }
@@ -856,7 +860,7 @@ Car *readCarBin(std::istream &is) {
     is.read((char *) &brandSize, sizeof(brandSize));
     char *brand = new char[brandSize + 1];
     is.read(brand, brandSize);
-    if (is.fail() || is.bad()) {
+    if (is.fail() || is.bad() || is.eof()) {
         delete[]id;
         delete[]brand;
         return nullptr;
@@ -865,7 +869,7 @@ Car *readCarBin(std::istream &is) {
 
     float mileage;
     is.read((char *) &mileage, sizeof(mileage));
-    if (is.fail() || is.bad()) {
+    if (is.fail() || is.bad() || is.eof()) {
         delete[]id;
         delete[]brand;
         return nullptr;
@@ -873,7 +877,7 @@ Car *readCarBin(std::istream &is) {
 
     int year;
     is.read((char *) &year, sizeof(year));
-    if (is.fail() || is.bad()) {
+    if (is.fail() || is.bad() || is.eof()) {
         delete[]id;
         delete[]brand;
         return nullptr;
